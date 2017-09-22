@@ -13,11 +13,11 @@ import vn.hoitinhocvinhlong.policevinhlong.R;
  * Created by Long on 9/18/2017.
  */
 
-public class FragmentTeNanXaHoi extends Fragment {
+public class FragmentTaiNanLaoDong extends Fragment {
 
-    public static FragmentTeNanXaHoi newInstance() {
+    public static FragmentTaiNanLaoDong newInstance() {
         Bundle args = new Bundle();
-        FragmentTeNanXaHoi fragment = new FragmentTeNanXaHoi();
+        FragmentTaiNanLaoDong fragment = new FragmentTaiNanLaoDong();
         fragment.setArguments(args);
         return fragment;
     }
@@ -25,7 +25,7 @@ public class FragmentTeNanXaHoi extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_te_nan_xa_hoi, container, false);
+        View view = inflater.inflate(R.layout.fragment_tai_nan_lao_dong, container, false);
         return view;
     }
 }

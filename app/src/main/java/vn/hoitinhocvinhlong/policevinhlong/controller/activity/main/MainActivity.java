@@ -81,7 +81,10 @@ public class MainActivity extends AppCompatActivity
         String ten = mSharedPreferences.getString("Ten", "");
         mTextViewTen.setText(ten);
         mTextViewSoDienThoai.setText(soDienThoai);
-
+        if(getIntent() != null){
+            int position = getIntent().getIntExtra("Position", 0);
+            mViewPager.setCurrentItem(position);
+        }
 
     }
 

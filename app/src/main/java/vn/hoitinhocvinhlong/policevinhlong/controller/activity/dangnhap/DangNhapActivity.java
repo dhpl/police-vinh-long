@@ -20,6 +20,7 @@ import org.json.JSONObject;
 import vn.hoitinhocvinhlong.policevinhlong.R;
 import vn.hoitinhocvinhlong.policevinhlong.controller.activity.dangky.DangKyActivity;
 import vn.hoitinhocvinhlong.policevinhlong.controller.activity.main.MainActivity;
+import vn.hoitinhocvinhlong.policevinhlong.controller.service.PoliceService;
 import vn.hoitinhocvinhlong.policevinhlong.model.ThanhVien;
 import vn.hoitinhocvinhlong.policevinhlong.util.JsonResult;
 
@@ -32,10 +33,12 @@ public class DangNhapActivity extends AppCompatActivity {
     private SharedPreferences mSharedPreferences;
     private SharedPreferences.Editor mEditor;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dang_nhap);
+
         //Sharepreferences
         mSharedPreferences = getSharedPreferences("TaiKhoanDangNhap", MODE_PRIVATE);
         mEditor = mSharedPreferences.edit();
@@ -86,12 +89,17 @@ public class DangNhapActivity extends AppCompatActivity {
             public void onResponse(JSONObject response) throws JSONException {
                 int code = response.getInt("code");
                 if(code == 1000){
+
                     String s = String.valueOf(response.getJSONObject("data"));
                     ThanhVien thanhVien = mGson.fromJson(s, ThanhVien.class);
                     mEditor.putString("Username", thanhVien.getUsername());
                     mEditor.putString("MatKhau", thanhVien.getMatkhau());
                     mEditor.putString("Ten", thanhVien.getTen());
+                    mEditor.putInt("IdUser", thanhVien.getId());
                     mEditor.commit();
+                    Intent iService = new Intent(DangNhapActivity.this, PoliceService.class);
+                    iService.putExtra("ID", thanhVien.getId());
+                    startService(iService);
                     Intent iMain = new Intent(DangNhapActivity.this, MainActivity.class);
                     startActivity(iMain);
                     finish();

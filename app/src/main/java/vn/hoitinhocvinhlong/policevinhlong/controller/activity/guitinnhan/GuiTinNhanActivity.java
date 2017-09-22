@@ -1,7 +1,9 @@
 package vn.hoitinhocvinhlong.policevinhlong.controller.activity.guitinnhan;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
@@ -12,6 +14,7 @@ import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
@@ -21,7 +24,10 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -30,6 +36,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -41,7 +49,12 @@ import java.util.List;
 
 import vn.hoitinhocvinhlong.policevinhlong.R;
 import vn.hoitinhocvinhlong.policevinhlong.adapter.AdapterCameraAndVideo;
-import vn.hoitinhocvinhlong.policevinhlong.util.UploadFile;
+import vn.hoitinhocvinhlong.policevinhlong.controller.activity.main.MainActivity;
+import vn.hoitinhocvinhlong.policevinhlong.model.NhiemVu;
+import vn.hoitinhocvinhlong.policevinhlong.model.TinNhan;
+import vn.hoitinhocvinhlong.policevinhlong.util.JsonResult;
+import vn.hoitinhocvinhlong.policevinhlong.util.UploadFileImage;
+import vn.hoitinhocvinhlong.policevinhlong.util.UploadFileVideo;
 
 public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks
         , GoogleApiClient.OnConnectionFailedListener, AdapterCameraAndVideo.ProtocolRemoveTinNhan{
@@ -49,6 +62,7 @@ public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiCl
     // View
     private Toolbar mToolbar;
     private Button mButtonCamera, mButtonVideo, mButtonGui;
+    private EditText mTextInputNoiDung;
     private Spinner mSpinnerSoBanNganh;
     // Camera, Video
     private static final int REQUEST_PERMISSION_CAMERA = 1;
@@ -62,6 +76,8 @@ public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiCl
     private static final int REQUEST_IMAGE_CAPTURE = 33;
     private static final int REQUEST_VIDEO_CAPTURE = 44;
     private static String mCurrentPhotoPath, mCurrentVideoPath;
+    private int mSizeVideo, mSizeCamera;
+    private NhiemVu mNhiemVu;
     //Recycler view camera, video
     private RecyclerView mRecyclerViewCameraAndVideo;
     private List<File> mFileList;
@@ -69,23 +85,77 @@ public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiCl
     //Location
     private GoogleApiClient mGoogleApiClient;
     private Location mLocation;
-
+    private List<String> mListVideo;
+    private List<String> mListImage;
+    //Nhiem vu
+    private List<NhiemVu> mNhiemVuList;
+    private ArrayAdapter<NhiemVu> mNhiemVuArrayAdapter;
+    //Sharepreference
+    private SharedPreferences mSharedPreferences;
+    private int mIdUser;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gui_tin_nhan);
-
+        //Get sharepreference
+        mSharedPreferences = getSharedPreferences("TaiKhoanDangNhap", MODE_PRIVATE);
+        mIdUser = mSharedPreferences.getInt("IdUser", 0);
+        //Camera, Video
+        mListVideo = new ArrayList<>();
+        mListImage = new ArrayList<>();
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-
         // Get view
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         mButtonCamera = (Button) findViewById(R.id.buttonCamera);
         mButtonVideo = (Button) findViewById(R.id.buttonVideo);
         mButtonGui = (Button) findViewById(R.id.buttonGui);
         mSpinnerSoBanNganh = (Spinner) findViewById(R.id.spinnerSoBanNganh);
+        mTextInputNoiDung = (TextInputEditText) findViewById(R.id.textInputEditTextNoiDung);
+        //Set nhiem vu
+        mNhiemVuList = new ArrayList<>();
+        JsonResult.getNhiemVu(this, new JsonResult.GetSuccess() {
+            @Override
+            public void onResponse(JSONObject response) throws JSONException {
+                if(response.getString("code").equals("1000")){
+                    JSONObject jsonObjectData = response.getJSONObject("data");
+                    JSONArray jsonArrayItem = jsonObjectData.getJSONArray("items");
+                    for(int i =0; i < jsonArrayItem.length(); i++){
+                        JSONObject jsonObjectItem = jsonArrayItem.getJSONObject(i);
+                        int id = jsonObjectItem.getInt("id");
+                        String ten = jsonObjectItem.getString("ten");
+                        mNhiemVuList.add(new NhiemVu(id, ten));
+                    }
+                    mNhiemVuArrayAdapter = new ArrayAdapter<NhiemVu>(GuiTinNhanActivity.this, android.R.layout.simple_spinner_item, mNhiemVuList);
+                    mNhiemVuArrayAdapter.setDropDownViewResource(android.R.layout.simple_list_item_single_choice);
+                    mSpinnerSoBanNganh.setAdapter(mNhiemVuArrayAdapter);
+                    mSpinnerSoBanNganh.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                            mNhiemVu = mNhiemVuList.get(i);
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> adapterView) {
+
+                        }
+                    });
+
+                }
+            }
+
+            @Override
+            public void onResponse(String response) throws JSONException {
+
+            }
+
+            @Override
+            public void onError(VolleyError response) throws JSONException {
+
+            }
+        });
         // Set toolbar
         if(getSupportActionBar() == null){
             setSupportActionBar(mToolbar);
@@ -151,27 +221,52 @@ public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiCl
         mButtonGui.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                final String noiDung = mTextInputNoiDung.getText().toString().trim();
+                if(mListImage.size() > 0){
+                    mListImage.clear();
+                }
+                if(mListVideo.size() > 0){
+                    mListVideo.clear();
+                }
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                     if(requestPermissionLocation()){
                         mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-//                        Bitmap bitmap = BitmapFactory.decodeFile(mFileList.get(0).getAbsolutePath());
-//                        JsonResult.uploadImage(GuiTinNhanActivity.this, bitmap, new JsonResult.GetSuccess() {
-//                            @Override
-//                            public void onResponse(JSONObject response) throws JSONException {
-//                                System.out.println("JSON: " + response.toString());
-//                            }
-//
-//                            @Override
-//                            public void onResponse(String response) throws JSONException {
-//
-//                            }
-//
-//                            @Override
-//                            public void onError(VolleyError response) throws JSONException {
-//
-//                            }
-//                        });
-                        new UploadFile(GuiTinNhanActivity.this, new UploadFile.GetSuccess() {
+                    }
+                }else{
+                    mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                }
+                for(int i = 0; i < mFileList.size(); i++){
+                    if(mFileList.get(i).getAbsolutePath().split("\\.")[1].equals("jpg")){
+                        new UploadFileImage(GuiTinNhanActivity.this, new UploadFileImage.GetSuccess() {
+                            @Override
+                            public void onPostExcute(JSONObject response) {
+                            }
+
+                            @Override
+                            public void onPostExcute(String unused, String response) {
+                                String urlImage = response.substring(2, response.length());
+                                mListImage.add(JsonResult.URL + urlImage + ".jpg");
+                                if(mListImage.size() +  mListVideo.size() == mFileList.size()){
+                                    TinNhan tinNhan = new TinNhan();
+                                    tinNhan.setIduser(mIdUser);
+                                    tinNhan.setHinhanh(mListImage);
+                                    tinNhan.setVideo(mListVideo);
+                                    tinNhan.setLat(mLocation.getLatitude());
+                                    tinNhan.setLng(mLocation.getLongitude());
+                                    tinNhan.setNhiemvu(mNhiemVu.getId());
+                                    tinNhan.setNoidung(noiDung);
+                                    uploadTinNhan(tinNhan);
+                                    return;
+                                }
+                            }
+
+                            @Override
+                            public void onError(VolleyError response) {
+
+                            }
+                        }).execute(mFileList.get(i).getAbsolutePath(), String.valueOf(true));
+                    }else if(mFileList.get(i).getAbsolutePath().split("\\.")[1].equals("mp4")){
+                        new UploadFileVideo(GuiTinNhanActivity.this, new UploadFileVideo.GetSuccess() {
                             @Override
                             public void onPostExcute(JSONObject response) {
 
@@ -179,6 +274,20 @@ public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiCl
 
                             @Override
                             public void onPostExcute(String unused, String response) {
+                                String urlVideo = response.substring(2, response.length());
+                                mListVideo.add(JsonResult.URL + urlVideo + ".mp4");
+                                if(mListImage.size() +  mListVideo.size() == mFileList.size()){
+                                    TinNhan tinNhan = new TinNhan();
+                                    tinNhan.setIduser(mIdUser);
+                                    tinNhan.setHinhanh(mListImage);
+                                    tinNhan.setVideo(mListVideo);
+                                    tinNhan.setLat(mLocation.getLatitude());
+                                    tinNhan.setLng(mLocation.getLongitude());
+                                    tinNhan.setNhiemvu(mNhiemVu.getId());
+                                    tinNhan.setNoidung(noiDung);
+                                    uploadTinNhan(tinNhan);
+                                    return;
+                                }
 
                             }
 
@@ -186,14 +295,24 @@ public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiCl
                             public void onError(VolleyError response) {
 
                             }
-                        }).execute(mFileList.get(0).getAbsolutePath(), String.valueOf(true));
+                        }).execute(mFileList.get(i).getAbsolutePath(), String.valueOf(true));
                     }
-                }else{
-
                 }
+                if(mFileList.isEmpty()){
+                    TinNhan tinNhan = new TinNhan();
+                    tinNhan.setIduser(mIdUser);
+                    tinNhan.setHinhanh(mListImage);
+                    tinNhan.setVideo(mListVideo);
+                    tinNhan.setLat(mLocation.getLatitude());
+                    tinNhan.setLng(mLocation.getLongitude());
+                    tinNhan.setNhiemvu(mNhiemVu.getId());
+                    tinNhan.setNoidung(noiDung);
+                    uploadTinNhan(tinNhan);
+                }
+
+
             }
         });
-
         // Set recycler view camera and video
         mFileList = new ArrayList<>();
         mRecyclerViewCameraAndVideo = (RecyclerView) findViewById(R.id.recyclerViewCameraAndVideo);
@@ -390,6 +509,32 @@ public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiCl
         }
     }
 
+    private void uploadTinNhan(TinNhan tinNhan){
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle("Đang gửi");
+        progressDialog.setMessage("Vui lòng chờ");
+        progressDialog.show();
+        JsonResult.tinNhan(this, tinNhan, new JsonResult.GetSuccess() {
+            @Override
+            public void onResponse(JSONObject response) throws JSONException {
+                progressDialog.dismiss();
+                Intent iMain = new Intent(GuiTinNhanActivity.this, MainActivity.class);
+                iMain.putExtra("Position", mNhiemVu.getId() - 1);
+                startActivity(iMain);
+            }
+
+            @Override
+            public void onResponse(String response) throws JSONException {
+
+            }
+
+            @Override
+            public void onError(VolleyError response) throws JSONException {
+
+            }
+        });
+    }
+
 
     // Google Location
     @Override
@@ -409,7 +554,6 @@ public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiCl
 
     @Override
     public void complete(int position) {
-        System.out.println("Position : " + position);
         mFileList.remove(position);
         mAdapterCameraAndVideo.notifyDataSetChanged();
         setVisibleRecyclerView();

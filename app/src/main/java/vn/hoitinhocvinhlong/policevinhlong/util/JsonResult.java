@@ -2,8 +2,6 @@ package vn.hoitinhocvinhlong.policevinhlong.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.util.Base64;
 import android.util.Log;
 
 import com.android.volley.AuthFailureError;
@@ -16,17 +14,18 @@ import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 import vn.hoitinhocvinhlong.policevinhlong.model.ThanhVien;
+import vn.hoitinhocvinhlong.policevinhlong.model.TinNhan;
 
 /**
  * Created by Long on 9/19/2017.
@@ -39,6 +38,7 @@ public class JsonResult {
     public static String tag_json_obj = "json_obj_req";
     public static String TAG="Json Result";
     public static final String URL= "http://police.xekia.vn:9020/";
+
 
     public static void register(final Context context, final ThanhVien user, final GetSuccess getSuccess) {
         StringRequest strReq = new StringRequest(Request.Method.POST,
@@ -327,20 +327,9 @@ public class JsonResult {
         requestQueue.add(strReq);
     }
 
-    public static String getStringImage(Bitmap bmp) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        byte[] imageBytes = baos.toByteArray();
-        String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
-        return encodedImage;
-    }
 
-
-    public static void uploadImage(final Context context, Bitmap bitmap, final GetSuccess getSuccess){
-
-        final String file = getStringImage(bitmap);
-
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, URL + "upload", new Response.Listener<String>() {
+    public static void getNhiemVu(final Context context, final GetSuccess getSuccess){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, URL + "nhiemvu/getall", new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Log.d(TAG, response.toString());
@@ -368,19 +357,9 @@ public class JsonResult {
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();
-                params.put("filename", file);
-                params.put("name", "file");
-                return params;
+                return checkParams(params);
             }
 
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                SharedPreferences sharedPreferences = context.getSharedPreferences("TaiKhoanDangNhap", Context.MODE_PRIVATE);
-                String session = sharedPreferences.getString("SessiionLogin", "");
-                Map<String, String> params = new HashMap<>();
-                params.put("cookie", session);
-                return super.getHeaders();
-            }
         };
         stringRequest.setRetryPolicy(new DefaultRetryPolicy(
                 MY_SOCKET_TIMEOUT_MS,
@@ -388,6 +367,120 @@ public class JsonResult {
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         RequestQueue requestQueue= Volley.newRequestQueue(context);
         requestQueue.add(stringRequest);
+    }
+
+    public static void tinNhan(final Context context, final TinNhan tinNhan, final GetSuccess getSuccess) {
+        StringRequest strReq = new StringRequest(Request.Method.POST, URL +
+                "message/create" , new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, response.toString());
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    getSuccess.onResponse(jsonObject);
+
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.d(TAG, "Error: " + error.getMessage());
+                try {
+                    getSuccess.onError(error);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("iduser", String.valueOf(tinNhan.getIduser()));
+                params.put("noidung", tinNhan.getNoidung());
+                params.put("hinhanh", new Gson().toJson(tinNhan.getHinhanh()));
+                params.put("video", new Gson().toJson(tinNhan.getVideo()));
+                params.put("lat", String.valueOf(tinNhan.getLat()));
+                params.put("lng", String.valueOf(tinNhan.getLng()));
+                params.put("nhiemvu", String.valueOf(tinNhan.getNhiemvu()));
+                params.put("thoigiantao", new Date().getTime() + "");
+                return checkParams(params);
+            }
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String,String> params = new HashMap<String, String>();
+                SharedPreferences sharedPreferences = context.getSharedPreferences("TaiKhoanDangNhap", Context.MODE_PRIVATE);
+                String session = sharedPreferences.getString("SessionLogin", "");
+                params.put("cookie", session);
+                return checkParams(params);
+            }
+
+        };
+        strReq.setRetryPolicy(new DefaultRetryPolicy(
+                MY_SOCKET_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        RequestQueue requestQueue= Volley.newRequestQueue(context);
+        requestQueue.add(strReq);
+    }
+
+    public static void getTinNhan(final Context context, final int nhiemvu, final int page, final GetSuccess getSuccess) {
+        StringRequest strReq = new StringRequest(Request.Method.POST, URL +
+                "message/getbynv" , new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, response.toString());
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    getSuccess.onResponse(jsonObject);
+
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.d(TAG, "Error: " + error.getMessage());
+                try {
+                    getSuccess.onError(error);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("nhiemvu", String.valueOf(nhiemvu));
+                params.put("page", String.valueOf(page));
+                return checkParams(params);
+            }
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String,String> params = new HashMap<String, String>();
+                SharedPreferences sharedPreferences = context.getSharedPreferences("TaiKhoanDangNhap", Context.MODE_PRIVATE);
+                String session = sharedPreferences.getString("SessionLogin", "");
+                params.put("cookie", session);
+                return checkParams(params);
+            }
+
+        };
+        strReq.setRetryPolicy(new DefaultRetryPolicy(
+                MY_SOCKET_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        RequestQueue requestQueue= Volley.newRequestQueue(context);
+        requestQueue.add(strReq);
     }
 
 

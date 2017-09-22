@@ -30,7 +30,7 @@ import java.util.concurrent.CountDownLatch;
  * Created by Long on 9/20/2017.
  */
 
-public class UploadFile extends AsyncTask<String, String, String> {
+public class UploadFileImage extends AsyncTask<String, String, String> {
 
     private Context context;
     private PowerManager.WakeLock mWakeLock;
@@ -42,7 +42,7 @@ public class UploadFile extends AsyncTask<String, String, String> {
     private static int serverResponseCode = 0;
     private SharedPreferences mSharedPreferences;
 
-    public UploadFile(Context contex,GetSuccess succes)
+    public UploadFileImage(Context contex, GetSuccess succes)
     {
         context = contex;
         success=succes;

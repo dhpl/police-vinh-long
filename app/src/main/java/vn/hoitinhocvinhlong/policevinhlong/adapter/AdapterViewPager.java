@@ -6,7 +6,7 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 
 import vn.hoitinhocvinhlong.policevinhlong.controller.fragment.FragmentChuaChay;
 import vn.hoitinhocvinhlong.policevinhlong.controller.fragment.FragmentTaiNanGiaoThong;
-import vn.hoitinhocvinhlong.policevinhlong.controller.fragment.FragmentTeNanXaHoi;
+import vn.hoitinhocvinhlong.policevinhlong.controller.fragment.FragmentTaiNanLaoDong;
 
 /**
  * Created by Long on 9/18/2017.
@@ -14,9 +14,9 @@ import vn.hoitinhocvinhlong.policevinhlong.controller.fragment.FragmentTeNanXaHo
 
 public class AdapterViewPager extends FragmentStatePagerAdapter {
 
-    private Fragment[] fragments = {new FragmentChuaChay().newInstance(),
-            new FragmentTaiNanGiaoThong().newInstance(), new FragmentTeNanXaHoi().newInstance()};
-    private String[] titles = {"Chữa cháy", "Tai nạn giao thông", "Tệ nạn xã hội"};
+    private Fragment[] fragments = {new FragmentChuaChay().newInstance()
+            ,new FragmentTaiNanLaoDong().newInstance(),  new FragmentTaiNanGiaoThong().newInstance()};
+    private String[] titles = {"Chữa cháy", "Tai nạn lao động","Tai nạn giao thông"};
 
     public AdapterViewPager(FragmentManager fm) {
         super(fm);

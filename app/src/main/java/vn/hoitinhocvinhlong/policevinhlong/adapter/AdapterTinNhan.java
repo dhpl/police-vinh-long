@@ -10,8 +10,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
-
 import java.util.List;
 
 import vn.hoitinhocvinhlong.policevinhlong.R;
@@ -73,9 +71,9 @@ public class AdapterTinNhan extends RecyclerView.Adapter<AdapterTinNhan.ViewHold
         }
 
         public void bind(TinNhan tinNhan){
-            mTenTextView.setText(tinNhan.getTen());
-            mDiaChiTextView.setText(tinNhan.getDiaChi());
-            Picasso.with(mContext).load(tinNhan.getHinhAnh()).fit().into(mHinhAnhImageView);
+//            mTenTextView.setText(tinNhan.getTen());
+//            mDiaChiTextView.setText(tinNhan.getDiaChi());
+//            Picasso.with(mContext).load(tinNhan.getHinhAnh()).fit().into(mHinhAnhImageView);
         }
     }
 
