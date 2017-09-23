@@ -327,7 +327,6 @@ public class JsonResult {
         requestQueue.add(strReq);
     }
 
-
     public static void getNhiemVu(final Context context, final GetSuccess getSuccess){
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL + "nhiemvu/getall", new Response.Listener<String>() {
             @Override
@@ -471,6 +470,112 @@ public class JsonResult {
                 SharedPreferences sharedPreferences = context.getSharedPreferences("TaiKhoanDangNhap", Context.MODE_PRIVATE);
                 String session = sharedPreferences.getString("SessionLogin", "");
                 params.put("cookie", session);
+                return checkParams(params);
+            }
+
+        };
+        strReq.setRetryPolicy(new DefaultRetryPolicy(
+                MY_SOCKET_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        RequestQueue requestQueue= Volley.newRequestQueue(context);
+        requestQueue.add(strReq);
+    }
+
+    public static void getSoBanNganh(final Context context, final int nhiemvu, final int page, final GetSuccess getSuccess) {
+        StringRequest strReq = new StringRequest(Request.Method.POST, URL +
+                "sobannganh/getbynv" , new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, response.toString());
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    getSuccess.onResponse(jsonObject);
+
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.d(TAG, "Error: " + error.getMessage());
+                try {
+                    getSuccess.onError(error);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("nhiemvu", String.valueOf(nhiemvu));
+                params.put("page", String.valueOf(page));
+                return checkParams(params);
+            }
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String,String> params = new HashMap<String, String>();
+                SharedPreferences sharedPreferences = context.getSharedPreferences("TaiKhoanDangNhap", Context.MODE_PRIVATE);
+                String session = sharedPreferences.getString("SessionLogin", "");
+                params.put("cookie", session);
+                return checkParams(params);
+            }
+
+        };
+        strReq.setRetryPolicy(new DefaultRetryPolicy(
+                MY_SOCKET_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        RequestQueue requestQueue= Volley.newRequestQueue(context);
+        requestQueue.add(strReq);
+    }
+
+    public static void getPolyLine(final Context context, String url, final GetSuccess getSuccess) {
+
+        StringRequest strReq = new StringRequest(Request.Method.GET,
+                url, new Response.Listener<String>() {
+
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, response.toString());
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    getSuccess.onResponse(jsonObject);
+
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.d(TAG, "Error: " + error.getMessage());
+                try {
+                    getSuccess.onError(error);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<String, String>();
+                return checkParams(params);
+            }
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String,String> params = new HashMap<String, String>();
+                //params.put("Content-Type", "application/json; charset=utf-8");
                 return checkParams(params);
             }
 

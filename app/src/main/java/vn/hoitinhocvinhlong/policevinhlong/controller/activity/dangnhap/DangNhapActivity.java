@@ -1,5 +1,6 @@
 package vn.hoitinhocvinhlong.policevinhlong.controller.activity.dangnhap;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -84,12 +85,16 @@ public class DangNhapActivity extends AppCompatActivity {
             mTextInputEditTextPassword.setError("Không được để trống.");
             return;
         }
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle("Đang đăng nhập");
+        progressDialog.setMessage("Vui lòng chờ");
+        progressDialog.setCancelable(true);
+        progressDialog.show();
         JsonResult.login(this, username, password, new JsonResult.GetSuccess() {
             @Override
             public void onResponse(JSONObject response) throws JSONException {
                 int code = response.getInt("code");
                 if(code == 1000){
-
                     String s = String.valueOf(response.getJSONObject("data"));
                     ThanhVien thanhVien = mGson.fromJson(s, ThanhVien.class);
                     mEditor.putString("Username", thanhVien.getUsername());
@@ -97,6 +102,7 @@ public class DangNhapActivity extends AppCompatActivity {
                     mEditor.putString("Ten", thanhVien.getTen());
                     mEditor.putInt("IdUser", thanhVien.getId());
                     mEditor.commit();
+                    progressDialog.dismiss();
                     Intent iService = new Intent(DangNhapActivity.this, PoliceService.class);
                     iService.putExtra("ID", thanhVien.getId());
                     startService(iService);
@@ -104,7 +110,10 @@ public class DangNhapActivity extends AppCompatActivity {
                     startActivity(iMain);
                     finish();
                 }else if(code == 1003){
+                    progressDialog.dismiss();
                     Toast.makeText(DangNhapActivity.this, "Tài khoản không chính xác.", Toast.LENGTH_SHORT).show();
+                }else{
+                    progressDialog.dismiss();
                 }
             }
 
@@ -115,7 +124,7 @@ public class DangNhapActivity extends AppCompatActivity {
 
             @Override
             public void onError(VolleyError response) throws JSONException {
-
+                
             }
         });
     }

@@ -20,12 +20,12 @@ public class TinNhan implements Parcelable{
     private double lng;
     private int nhiemvu;
     private long thoigiantao;
-
+    private String user;
 
     public TinNhan() {
     }
 
-    public TinNhan(int id, int iduser, String noidung, List<String> hinhanh, List<String> video, double lat, double lng, int nhiemvu, long thoigiantao) {
+    public TinNhan(int id, int iduser, String noidung, List<String> hinhanh, List<String> video, double lat, double lng, int nhiemvu, long thoigiantao, String user) {
         this.id = id;
         this.iduser = iduser;
         this.noidung = noidung;
@@ -35,6 +35,7 @@ public class TinNhan implements Parcelable{
         this.lng = lng;
         this.nhiemvu = nhiemvu;
         this.thoigiantao = thoigiantao;
+        this.user = user;
     }
 
     protected TinNhan(Parcel in) {
@@ -47,6 +48,7 @@ public class TinNhan implements Parcelable{
         lng = in.readDouble();
         nhiemvu = in.readInt();
         thoigiantao = in.readLong();
+        user = in.readString();
     }
 
     public static final Creator<TinNhan> CREATOR = new Creator<TinNhan>() {
@@ -133,6 +135,14 @@ public class TinNhan implements Parcelable{
         this.thoigiantao = thoigiantao;
     }
 
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -149,5 +159,6 @@ public class TinNhan implements Parcelable{
         parcel.writeDouble(lng);
         parcel.writeInt(nhiemvu);
         parcel.writeLong(thoigiantao);
+        parcel.writeString(user);
     }
 }

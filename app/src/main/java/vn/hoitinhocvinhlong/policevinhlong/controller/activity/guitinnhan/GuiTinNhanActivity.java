@@ -521,6 +521,7 @@ public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiCl
                 Intent iMain = new Intent(GuiTinNhanActivity.this, MainActivity.class);
                 iMain.putExtra("Position", mNhiemVu.getId() - 1);
                 startActivity(iMain);
+                finish();
             }
 
             @Override

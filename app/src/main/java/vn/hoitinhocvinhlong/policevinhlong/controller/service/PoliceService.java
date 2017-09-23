@@ -4,7 +4,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -58,7 +57,6 @@ public class PoliceService extends Service {
     }
 
     private void connectChat(){
-        System.out.println(mId);
         mSocket.emit("join-myroom", mId);
     }
 
@@ -66,6 +64,7 @@ public class PoliceService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mSocket.off("join-myroom");
         mSocket.disconnect();
     }
 
@@ -84,10 +83,13 @@ public class PoliceService extends Service {
                 String video = jsonObjectTinNhan.getString("video");
                 List<String> hinhanhList = new Gson().fromJson(hinhanh, List.class);
                 List<String> videoList = new Gson().fromJson(video, List.class);
+                System.out.println("HinhAnh: " + hinhanhList.get(0));
                 double lat = jsonObjectTinNhan.getDouble("lat");
                 double lng = jsonObjectTinNhan.getDouble("lng");
                 int nhiemvu = jsonObjectTinNhan.getInt("nhiemvu");
                 long thoigiantao = jsonObjectTinNhan.getLong("thoigiantao");
+                String jsonUser = String.valueOf(jsonObjectTinNhan.getString("user"));
+                ThanhVien thanhVien = new Gson().fromJson(jsonUser, ThanhVien.class);
                 TinNhan tinNhan = new TinNhan();
                 tinNhan.setId(id);
                 tinNhan.setIduser(iduser);
@@ -98,10 +100,9 @@ public class PoliceService extends Service {
                 tinNhan.setLng(lng);
                 tinNhan.setNhiemvu(nhiemvu);
                 tinNhan.setThoigiantao(thoigiantao);
-                String jsonUser = String.valueOf(jsonObjectTinNhan.getString("user"));
-                ThanhVien thanhVien = new Gson().fromJson(jsonUser, ThanhVien.class);
-                pushTinNhan(tinNhan.getNhiemvu() - 1, thanhVien, tinNhan);
+                tinNhan.setUser(jsonUser);
                 createNotification(thanhVien, tinNhan);
+//                pushReceiverTinNhan(tinNhan.getNhiemvu() - 1, tinNhan);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -115,33 +116,31 @@ public class PoliceService extends Service {
                 .setContentTitle(thanhVien.getTen())
                 .setContentText(tinNhan.getNoidung())
                 .setAutoCancel(true);
-        Uri uriSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        Uri uriSound = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.ring);
         mBuilder.setSound(uriSound);
         Intent iMain = new Intent(this, MainActivity.class);
         iMain.putExtra("Position", tinNhan.getNhiemvu() - 1);
         iMain.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, iMain, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, tinNhan.getId(), iMain, PendingIntent.FLAG_UPDATE_CURRENT);
         mBuilder.setContentIntent(pendingIntent);
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.notify(9020, mBuilder.build());
+        notificationManager.notify(tinNhan.getId(), mBuilder.build());
     }
 
-    private void pushTinNhan(int idNhiemVu, ThanhVien thanhVien, TinNhan tinNhan){
-        Intent intent = new Intent();
-        intent.putExtra("ThanhVien", thanhVien);
-        intent.putExtra("TinNhan", tinNhan);
+    private void pushReceiverTinNhan(int idNhiemVu, TinNhan tinNhan){
+        Intent intentBroadcast = new Intent();
         switch(idNhiemVu){
             case 0:
-                intent.setAction("receiver-chua-chay");
-                sendBroadcast(intent);
+                intentBroadcast.setAction("vn.hoitinhocvinhlong.chuachay");
+                sendBroadcast(intentBroadcast);
                 break;
             case 1:
-                intent.setAction("receiver-tai-nan-lao-dong");
-                sendBroadcast(intent);
+//                intent.setAction("receiver-tai-nan-lao-dong");
+//                sendBroadcast(intent);
                 break;
             case 2:
-                intent.setAction("receiver-tai-nan-giao-thong");
-                sendBroadcast(intent);
+//                intent.setAction("receiver-tai-nan-giao-thong");
+//                sendBroadcast(intent);
                 break;
         }
 
