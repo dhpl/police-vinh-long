@@ -49,7 +49,6 @@ import java.util.List;
 
 import vn.hoitinhocvinhlong.policevinhlong.R;
 import vn.hoitinhocvinhlong.policevinhlong.adapter.AdapterCameraAndVideo;
-import vn.hoitinhocvinhlong.policevinhlong.controller.activity.main.MainActivity;
 import vn.hoitinhocvinhlong.policevinhlong.model.NhiemVu;
 import vn.hoitinhocvinhlong.policevinhlong.model.TinNhan;
 import vn.hoitinhocvinhlong.policevinhlong.util.JsonResult;
@@ -93,6 +92,8 @@ public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiCl
     //Sharepreference
     private SharedPreferences mSharedPreferences;
     private int mIdUser;
+    //Progress Dialog
+    private ProgressDialog mProgressDialog;
 
 
     @Override
@@ -221,13 +222,12 @@ public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiCl
         mButtonGui.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mProgressDialog = new ProgressDialog(GuiTinNhanActivity.this);
+                mProgressDialog.setTitle("Đang gửi");
+                mProgressDialog.setMessage("Vui lòng chờ");
+                mProgressDialog.setCancelable(false);
+                mProgressDialog.show();
                 final String noiDung = mTextInputNoiDung.getText().toString().trim();
-                if(mListImage.size() > 0){
-                    mListImage.clear();
-                }
-                if(mListVideo.size() > 0){
-                    mListVideo.clear();
-                }
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                     if(requestPermissionLocation()){
                         mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
@@ -256,7 +256,6 @@ public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiCl
                                     tinNhan.setNhiemvu(mNhiemVu.getId());
                                     tinNhan.setNoidung(noiDung);
                                     uploadTinNhan(tinNhan);
-                                    return;
                                 }
                             }
 
@@ -286,7 +285,6 @@ public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiCl
                                     tinNhan.setNhiemvu(mNhiemVu.getId());
                                     tinNhan.setNoidung(noiDung);
                                     uploadTinNhan(tinNhan);
-                                    return;
                                 }
 
                             }
@@ -510,17 +508,10 @@ public class GuiTinNhanActivity extends AppCompatActivity implements GoogleApiCl
     }
 
     private void uploadTinNhan(TinNhan tinNhan){
-        final ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setTitle("Đang gửi");
-        progressDialog.setMessage("Vui lòng chờ");
-        progressDialog.show();
         JsonResult.tinNhan(this, tinNhan, new JsonResult.GetSuccess() {
             @Override
             public void onResponse(JSONObject response) throws JSONException {
-                progressDialog.dismiss();
-                Intent iMain = new Intent(GuiTinNhanActivity.this, MainActivity.class);
-                iMain.putExtra("Position", mNhiemVu.getId() - 1);
-                startActivity(iMain);
+                mProgressDialog.dismiss();
                 finish();
             }
 

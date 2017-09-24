@@ -85,6 +85,7 @@ public class AdapterTinNhan extends RecyclerView.Adapter<AdapterTinNhan.ViewHold
         }
 
         public void bind(TinNhan tinNhan){
+
             ThanhVien thanhVien = new Gson().fromJson(tinNhan.getUser(), ThanhVien.class);
             List<Address> addressList = null;
             try {
@@ -99,17 +100,24 @@ public class AdapterTinNhan extends RecyclerView.Adapter<AdapterTinNhan.ViewHold
             mDiaChiTextView.setText("Địa chỉ: " + addressTN);
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yyyy HH:mm a");
             mThoiGianDangTextView.setText(simpleDateFormat.format(new Date(tinNhan.getThoigiantao())));
+
             if(tinNhan.getHinhanh().size() > 0){
-                Picasso.with(mContext).load(tinNhan.getHinhanh().get(0).split("\\.jpg")[0]).fit().into(mHinhAnhImageView);
+                mHinhAnhImageView.setVisibility(View.VISIBLE);
+                Picasso.with(mContext)
+                        .load(tinNhan.getHinhanh().get(0).split("\\.jpg")[0])
+                        .fit()
+                        .placeholder(R.drawable.fire)
+                        .into(mHinhAnhImageView);
             }else{
                 mHinhAnhImageView.setVisibility(View.GONE);
             }
+
             if(!TextUtils.isEmpty(tinNhan.getNoidung())){
                 mNoiDungTextView.setText("Nội dung: " + tinNhan.getNoidung());
+                mNoiDungTextView.setVisibility(View.VISIBLE);
             }else{
                 mNoiDungTextView.setVisibility(View.GONE);
             }
-
         }
     }
 

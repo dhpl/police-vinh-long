@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity
         mAdapterViewPager = new AdapterViewPager(getSupportFragmentManager());
         mViewPager.setAdapter(mAdapterViewPager);
         mTabLayout.setupWithViewPager(mViewPager);
+        mViewPager.setOffscreenPageLimit(3);
         //Set toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

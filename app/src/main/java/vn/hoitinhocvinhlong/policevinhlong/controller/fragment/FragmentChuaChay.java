@@ -1,5 +1,6 @@
 package vn.hoitinhocvinhlong.policevinhlong.controller.fragment;
 
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -39,8 +40,8 @@ public class FragmentChuaChay extends Fragment {
     private RecyclerView mTinNhanRecyclerView;
     private AdapterTinNhan mAdapterTinNhan;
     private LinearLayoutManager mLinearLayoutManager;
-    private boolean mIsScroll = true;
-    private static int mPage = 0;
+    private boolean mIsLastPage = false;
+    private static int mPage;
     private int mItems = 10;
     private int mItemLoad = 5;
 
@@ -56,12 +57,15 @@ public class FragmentChuaChay extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        registerBroadcastReceiver();
+        registerBroadcastTinNhan();
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        if(savedInstanceState != null){
+            mPage = savedInstanceState.getInt("Page");
+        }
         View view = inflater.inflate(R.layout.fragment_chua_chay, container, false);
         //View
         mTinNhanRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerViewChuaChay);
@@ -80,33 +84,29 @@ public class FragmentChuaChay extends Fragment {
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        getActivity().unregisterReceiver(mBroadcastReceiver);
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("Page", mPage);
     }
 
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            TinNhan tinNhan = intent.getParcelableExtra("TinNhan");
-
-        }
-    };
-
-    private void registerBroadcastReceiver(){
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("vn.hoitinhocvinhlong.chuachay");
-        getActivity().registerReceiver(mBroadcastReceiver, intentFilter);
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unregisterBroadcastTinNhan();
     }
 
     private void loadMore(int page){
+        final ProgressDialog progressDialog = new ProgressDialog(getActivity());
+        progressDialog.setTitle("Đang tải thêm");
+        progressDialog.setMessage("Vui lòng chờ");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
         JsonResult.getTinNhan(getContext(), 1, page, new JsonResult.GetSuccess() {
             @Override
             public void onResponse(JSONObject response) throws JSONException {
                 JSONObject jsonObjectData = response.getJSONObject("data");
                 JSONArray jsonArrayChuaChay = jsonObjectData.getJSONArray("items");
                 int size = jsonArrayChuaChay.length();
-                List<TinNhan> tinNhanList = new ArrayList<TinNhan>();
                 for (int i = 0; i < size; i++) {
                     JSONObject jsonObjectTinNhan = jsonArrayChuaChay.getJSONObject(i);
                     int id = jsonObjectTinNhan.getInt("id");
@@ -132,17 +132,13 @@ public class FragmentChuaChay extends Fragment {
                     tinNhan.setNhiemvu(nhiemvu);
                     tinNhan.setThoigiantao(thoigiantao);
                     tinNhan.setUser(jsonUser);
-                    tinNhanList.add(tinNhan);
-                }
-                if(tinNhanList.size() == size){
-                    mTinNhanList.clear();
-                    mTinNhanList.addAll(tinNhanList);
+                    mTinNhanList.add(tinNhan);
                     mAdapterTinNhan.notifyDataSetChanged();
                 }
-                if(tinNhanList.size() < mItems){
-                    mIsScroll = false;
+                if(size < mItems){
+                    mIsLastPage = true;
                 }
-
+                progressDialog.dismiss();
             }
 
             @Override
@@ -156,6 +152,7 @@ public class FragmentChuaChay extends Fragment {
             }
         });
     }
+
     private RecyclerView.OnScrollListener mOnScrollListenerChuaChay = new RecyclerView.OnScrollListener() {
         @Override
         public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
@@ -168,7 +165,7 @@ public class FragmentChuaChay extends Fragment {
             int first = mLinearLayoutManager.findFirstVisibleItemPosition();
             int total = mLinearLayoutManager.getItemCount();
             int visible = mLinearLayoutManager.getChildCount();
-            if(mIsScroll){
+            if(!mIsLastPage){
                 if((first + mItemLoad) >= (total - visible)){
                     mPage += 1;
                     loadMore(mPage);
@@ -176,4 +173,24 @@ public class FragmentChuaChay extends Fragment {
             }
         }
     };
+
+    private BroadcastReceiver mBroadcastReceiverTinNhan = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            mTinNhanRecyclerView.smoothScrollToPosition(0);
+            System.out.println("HiHi");
+            TinNhan tinNhan = intent.getParcelableExtra("TinNhan");
+            mTinNhanList.add(0, tinNhan);
+            mAdapterTinNhan.notifyItemInserted(0);
+        }
+    };
+
+    private void registerBroadcastTinNhan(){
+        IntentFilter intentFilter = new IntentFilter("vn.hoitinhocvinhlong.broadcast.tinnhan");
+        getActivity().registerReceiver(mBroadcastReceiverTinNhan, intentFilter);
+    }
+
+    private void unregisterBroadcastTinNhan(){
+        getActivity().unregisterReceiver(mBroadcastReceiverTinNhan);
+    }
 }

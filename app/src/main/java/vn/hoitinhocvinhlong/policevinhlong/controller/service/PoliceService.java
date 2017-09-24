@@ -83,7 +83,6 @@ public class PoliceService extends Service {
                 String video = jsonObjectTinNhan.getString("video");
                 List<String> hinhanhList = new Gson().fromJson(hinhanh, List.class);
                 List<String> videoList = new Gson().fromJson(video, List.class);
-                System.out.println("HinhAnh: " + hinhanhList.get(0));
                 double lat = jsonObjectTinNhan.getDouble("lat");
                 double lng = jsonObjectTinNhan.getDouble("lng");
                 int nhiemvu = jsonObjectTinNhan.getInt("nhiemvu");
@@ -102,7 +101,9 @@ public class PoliceService extends Service {
                 tinNhan.setThoigiantao(thoigiantao);
                 tinNhan.setUser(jsonUser);
                 createNotification(thanhVien, tinNhan);
-//                pushReceiverTinNhan(tinNhan.getNhiemvu() - 1, tinNhan);
+                Intent iBroadcastTinNhan = new Intent("vn.hoitinhocvinhlong.broadcast.tinnhan");
+                iBroadcastTinNhan.putExtra("TinNhan", tinNhan);
+                sendBroadcast(iBroadcastTinNhan);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -127,23 +128,5 @@ public class PoliceService extends Service {
         notificationManager.notify(tinNhan.getId(), mBuilder.build());
     }
 
-    private void pushReceiverTinNhan(int idNhiemVu, TinNhan tinNhan){
-        Intent intentBroadcast = new Intent();
-        switch(idNhiemVu){
-            case 0:
-                intentBroadcast.setAction("vn.hoitinhocvinhlong.chuachay");
-                sendBroadcast(intentBroadcast);
-                break;
-            case 1:
-//                intent.setAction("receiver-tai-nan-lao-dong");
-//                sendBroadcast(intent);
-                break;
-            case 2:
-//                intent.setAction("receiver-tai-nan-giao-thong");
-//                sendBroadcast(intent);
-                break;
-        }
-
-    }
 
 }

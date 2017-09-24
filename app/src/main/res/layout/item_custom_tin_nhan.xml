@@ -54,13 +54,14 @@
             android:text="Nội dung"
             android:textSize="15sp"
             android:layout_marginTop="5dp"
+            android:visibility="gone"
             />
         <ImageView
             android:id="@+id/imageViewHinhAnh"
             android:layout_width="match_parent"
             android:layout_height="250dp"
             android:layout_marginTop="5dp"
-            android:src="@drawable/fire"
+            android:visibility="gone"
             />
     </LinearLayout>
 </android.support.v7.widget.CardView>

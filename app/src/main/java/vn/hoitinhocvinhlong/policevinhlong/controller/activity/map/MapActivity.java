@@ -39,9 +39,6 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback{
     private int mPage = 0;
     private static final String API_POLYLINE = "AIzaSyBkErf0g7cGjxlqAcUQVLD_GVGVLxwwj3w";
 
-//    "https://maps.googleapis.com/maps/api/directions/json?origin="+ mLocationCurrent.getLatitude() + "," + mLocationCurrent.getLongitude()
-//                + "&destination=" + mLocationQuanAn.getLatitude() + "," + mLocationQuanAn.getLongitude() + "&key=" + "AIzaSyC-eJjaraDQTRojyNkpIDICvi-W0ME1DOs"
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
