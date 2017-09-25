@@ -71,7 +71,7 @@ public class FragmentChuaChay extends Fragment {
         mTinNhanRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerViewChuaChay);
         //Set recycler view chua chay
         mTinNhanList = new ArrayList<>();
-        mAdapterTinNhan = new AdapterTinNhan(getActivity(), mTinNhanList);
+        mAdapterTinNhan = new AdapterTinNhan(getActivity(), getActivity(), mTinNhanList);
         mTinNhanRecyclerView.setHasFixedSize(true);
         mTinNhanRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mTinNhanRecyclerView.setNestedScrollingEnabled(false);
